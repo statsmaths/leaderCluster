@@ -6,142 +6,108 @@
 
 #define RADIAN_FACTOR 0.017453292519943295474
 #define R 6378.1
+
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+
+/* Distance type definitions */
+#define Lp 0
+#define L1 1
+#define L2 2
+#define Linf 3
+#define HAVERSINE 4
+
 extern "C" {
-  void leader_haversine ( double * delta, double * points_lat, double * points_lon, double * weights, int * cluster_id, int * len );
+  void leader_cluster ( double * delta, double * points, double * weights,
+                        int * cluster_id, int * nrow, int * ncol, int * type, double * p);
 }
 
-void leader_haversine ( double * delta, double * points_lat, double * points_lon, double * weights, int * cluster_id, int * len ) {
+void leader_cluster ( double * delta, double * points, double * weights,
+                      int * cluster_id, int * nrow, int * ncol, int * type, double * p) {
 
-// Local variables
-double * cluster_centroid_lat;
-double * cluster_centroid_lon;
-double * cluster_weight;
-double new_weight;
-double h;
-double d;
-int i;
-int j;
-int num_clusters = 0;
+  // Local variables
+  double * cluster_centroid;
+  double * cluster_weight;
+  double new_weight;
+  double d;
+  double h;
+  int i;
+  int j;
+  int k;
+  int num_clusters;
+  int row = *nrow;
+  int col = *ncol;
 
-// Convert points to radians
-for(i = 0; i < *len; i++)
-{
-  points_lat[i] = points_lat[i] * RADIAN_FACTOR;
-  points_lon[i] = points_lon[i] * RADIAN_FACTOR;
-}
+  // Allocate variables
+  cluster_centroid = (double *) malloc(col * row * sizeof(double));
+  cluster_weight = (double *) malloc(row * sizeof(double));
 
-// Allocate variables
-cluster_centroid_lat = (double *) malloc(*len * sizeof(double));
-cluster_centroid_lon = (double *) malloc(*len * sizeof(double));
-cluster_weight = (double *) malloc(*len * sizeof(double));
+  // Initalize first cluster:
+  num_clusters = 0;
+  cluster_id[0] = 0;
+  for (i = 0; i < col; i++) cluster_centroid[i * row] = points[i * row];
+  cluster_weight[num_clusters] = weights[0];
+  num_clusters++;
 
-// Initalize first cluster:
-cluster_id[0] = 0;
-cluster_centroid_lat[num_clusters] = points_lat[0];
-cluster_centroid_lon[num_clusters] = points_lon[0];
-cluster_weight[num_clusters] = weights[0];
-num_clusters++;
-
-// Cycle through the points, allocating to a cluster; add
-// a new cluster when needed:
-for(i = 1; i < *len; i++)
-{
-  for(j = 0; j < num_clusters; j++)
+  // Cycle through the points, allocating to a cluster; add
+  // a new cluster when needed:
+  for (i = 1; i < row; i++)
   {
-    h = sqrt(pow(sin((points_lat[i] - cluster_centroid_lat[j])/2),2) +
-                     cos(points_lat[i]) * cos(cluster_centroid_lat[j]) *
-                     pow(sin((points_lon[i] - cluster_centroid_lon[j])/2),2));
-    if(h > 1) h = 1; // check for near-antipodal points
-    d = 2 * R * asin(h);
-    if(d <= *delta)
+    for (j = 0; j < num_clusters; j++)
+    {
+      d = 0;
+      switch (*type) {
+        case Lp:
+          for (k = 0; k < col; k++) d += pow(fabs(points[i + k*row] - cluster_centroid[j + k*row]), *p);
+          d = pow(d, 1 / *p);
+          break;
+        case L1:
+          for (k = 0; k < col; k++) d += fabs(points[i + k*row] - cluster_centroid[j + k*row]);
+          break;
+        case L2:
+          for (k = 0; k < col; k++) d += pow(points[i + k*row] - cluster_centroid[j + k*row],2);
+          d = sqrt(d);
+          break;
+        case Linf:
+          for (k = 0; k < col; k++) d += MAX(d, fabs(points[i + k*row] - cluster_centroid[j + k*row]));
+          break;
+        case HAVERSINE:
+          h = sqrt(pow(sin((points[i] - cluster_centroid[j])/2),2) +
+                       cos(points[i]) * cos(cluster_centroid[j]) *
+                       pow(sin((points[i + row] - cluster_centroid[j + row])/2),2));
+          if(h > 1) h = 1; // check for near-antipodal points
+          d = 2 * R * asin(h);
+          break;
+      }
+
+      if(d <= (*delta))
+      {
+        cluster_id[i] = j;
+        new_weight = cluster_weight[j] + weights[i];
+        for (k = 0; k < col; k++)
+        {
+          cluster_centroid[j + k*row] *= cluster_weight[j] / new_weight;
+          cluster_centroid[j + k*row] += weights[i] / new_weight * points[i + k*row];
+        }
+        cluster_weight[j] = new_weight;
+        break;
+      }
+    }
+    if(j == num_clusters)
     {
       cluster_id[i] = j;
-      new_weight = cluster_weight[j] + weights[i];
-      cluster_centroid_lat[j] *= cluster_weight[j] / new_weight;
-      cluster_centroid_lat[j] += weights[i] / new_weight * points_lat[i];
-      cluster_centroid_lon[j] *= cluster_weight[j] / new_weight;
-      cluster_centroid_lon[j] += weights[i] / new_weight * points_lon[i];
-      cluster_weight[j] = new_weight;
-      break;
+      for (k = 0; k < col; k++)
+      {
+        cluster_centroid[num_clusters + k*row] = points[i + k*row];
+      }
+      cluster_weight[num_clusters] = weights[i];
+      num_clusters++;
     }
   }
-  if(j == num_clusters)
-  {
-    cluster_id[i] = j++;
-    cluster_centroid_lat[num_clusters] = points_lat[i];
-    cluster_centroid_lon[num_clusters] = points_lon[i];
-    cluster_weight[num_clusters] = weights[i];
-    num_clusters++;
-  }
-}
 
-// Free variables
-free(cluster_centroid_lat);
-free(cluster_centroid_lon);
-
-}
-extern "C" {
-  void leader_euclid ( double * delta, double * points_lat, double * points_lon, double * weights, int * cluster_id, int * len );
-}
-
-void leader_euclid ( double * delta, double * points_lat, double * points_lon, double * weights, int * cluster_id, int * len ) {
-
-// Local variables
-double * cluster_centroid_lat;
-double * cluster_centroid_lon;
-double * cluster_weight;
-double new_weight;
-double h;
-double d;
-int i;
-int j;
-int num_clusters = 0;
-
-// Allocate variables
-cluster_centroid_lat = (double *) malloc(*len * sizeof(double));
-cluster_centroid_lon = (double *) malloc(*len * sizeof(double));
-cluster_weight = (double *) malloc(*len * sizeof(double));
-
-// Initalize first cluster:
-cluster_id[0] = 0;
-cluster_centroid_lat[num_clusters] = points_lat[0];
-cluster_centroid_lon[num_clusters] = points_lon[0];
-cluster_weight[num_clusters] = weights[0];
-num_clusters++;
-
-// Cycle through the points, allocating to a cluster; add
-// a new cluster when needed:
-for(i = 1; i < *len; i++)
-{
-  for(j = 0; j < num_clusters; j++)
-  {
-    d = sqrt(pow(points_lat[i] - cluster_centroid_lat[j],2) +
-             pow(points_lon[i] - cluster_centroid_lon[j],2));
-    if(d <= *delta)
-    {
-      cluster_id[i] = j;
-      new_weight = cluster_weight[j] + weights[i];
-      cluster_centroid_lat[j] *= cluster_weight[j] / new_weight;
-      cluster_centroid_lat[j] += weights[i] / new_weight * points_lat[i];
-      cluster_centroid_lon[j] *= cluster_weight[j] / new_weight;
-      cluster_centroid_lon[j] += weights[i] / new_weight * points_lon[i];
-      cluster_weight[j] = new_weight;
-      break;
-    }
-  }
-  if(j == num_clusters)
-  {
-    cluster_id[i] = j++;
-    cluster_centroid_lat[num_clusters] = points_lat[i];
-    cluster_centroid_lon[num_clusters] = points_lon[i];
-    cluster_weight[num_clusters] = weights[i];
-    num_clusters++;
-  }
-}
-
-// Free variables
-free(cluster_centroid_lat);
-free(cluster_centroid_lon);
+  // Free variables
+  free(cluster_centroid);
+  free(cluster_weight);
 
 }
 
