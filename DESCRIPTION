@@ -1,15 +1,16 @@
 Package: leaderCluster
 Type: Package
-Title: Implements Hartigan's Clustering Leader Algorithm
-Version: 1.0
-Date: 2014-07-19
+Title: Leader Clustering Algorithm
+Version: 1.1
+Date: 2014-11-11
 Author: Taylor B. Arnold
-Maintainer: Taylor B. Arnold to <taylor.b.arnold@gmail.com>
-Description: Hartigan's clustering leader algorithm provides
- a means for clustering points given a predetermined radius
- of a cluster. Unlike other clustering algorithms it does not
- require the user to specify the number of clusters. The package
- provides a fast implementation of this algorithm in two dimensions
- using either euclidian distance or the Haversine formula,
- which takes latitude and longitude as inputs.
-License: LGPL-2 
+Maintainer: Taylor B. Arnold to <taylor.arnold@acm.org>
+Description: The leader clustering algorithm provides
+ a means for clustering a set of data points. Unlike other algorithms
+ it does not require the user to specify the number of clusters,
+ but instead requires the approximate radius of a cluster as its
+ primary tuning parameter. The package provides a fast implementation
+ of this algorithm in n-dimensions using Lp-distances, or in spatial
+ data over two dimensions using the Haversine formula, which takes
+ latitude and longitude as inputs.
+License: LGPL-2

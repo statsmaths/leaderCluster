@@ -10,8 +10,8 @@ points in the space R^n, or latitude/longitude pairs. A radius delta
 must be provided.
 }
 \usage{
-leaderCluster = function(points, radius, weights = rep(1, nrow(points)), max_iter = 10L,
-                          distance = c("Lp", "L1", "L2", "Linf", "haversine"), p = 2)
+leaderCluster(points, radius, weights = rep(1, nrow(points)), max_iter = 10L,
+              distance = c("Lp", "L1", "L2", "Linf", "haversine"), p = 2)
 }
 \arguments{
   \item{points}{
@@ -69,7 +69,7 @@ A list containing a vector of cluster ids, a matrix of cluster
 centroids, the number of clusters, and the number iterations.
 }
 \references{
-Leader
+J. A. Hartigan. Clustering Algorithms. John Wiley & Sons, New York, 1975.
 }
 \author{
 Taylor B. Arnold
@@ -77,14 +77,14 @@ Taylor B. Arnold
 \examples{
   # A simple one-dimensional example
   points = 1:10
-  out = leaderCluster(points, delta=2, distance="Lp", max_iter=1L)
+  out = leaderCluster(points, radius=2, distance="Lp", max_iter=1L)
 
   # A two-dimensional example
   par(mar=c(0,0,0,0), mfrow=c(1,3))
   set.seed(1)
   points = matrix(runif(100*2), ncol=2)
-  for(delta in c(0.1, 0.2, 0.4)) {
-    out = leaderCluster(points = points, delta = delta, distance="L2")$cluster_id
+  for(r in c(0.1, 0.2, 0.4)) {
+    out = leaderCluster(points = points, radius = r, distance="L2")$cluster_id
     cols = rainbow(length(unique(out)))[out]
     plot(points, pch=19, cex=0.7, col=cols, axes=FALSE)
     points(points[!duplicated(out),,drop=FALSE], cex=2, col=unique(cols))
