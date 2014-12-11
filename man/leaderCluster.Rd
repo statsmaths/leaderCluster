@@ -16,7 +16,10 @@ leaderCluster(points, radius, weights = rep(1, nrow(points)), max_iter = 10L,
 \arguments{
   \item{points}{
 A matrix, or something which can be coerced into a matrix, of coordinates
-with rows representing points and columns representing dimensions.
+with rows representing points and columns representing dimensions. If using
+\code{haversine} distance, this must be a two column matrix with the first column
+containing latitudes in decimal degrees and the second containing longitudes
+in decimal degrees.
 }
   \item{radius}{
 A scalar value giving the radius of the resulting clusters; this is main
@@ -51,7 +54,7 @@ the coorisponding cluster. As centroid clusters move, it
 is possible for the final radius of each cluster to be
 slightly larger than delta.
 
-Unlikely many other iterative clustering algorithms, the
+Unlike many other iterative clustering algorithms, the
 leader algorithm typically provides reasonable clusters
 after just a single pass. When speed is of concern, the
 max_iter value may be safely set to 1. However, the
@@ -62,7 +65,8 @@ number of clusters than a solution with only one pass.
 The algorithm scales nicely, and can fit a model with
 100s of columns and 100k's of rows in (on a relatively
 modest machine) under a minute. However, the processing
-time decays significantly if the radis
+time decays significantly if the radius is too small,
+since the number of clusters will be very high. 
 }
 \value{
 A list containing a vector of cluster ids, a matrix of cluster

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #define RADIAN_FACTOR 0.017453292519943295474
-#define R 6378.1
+#define R 6378.1 // radius of the earth in kilometres
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
@@ -72,9 +72,9 @@ void leader_cluster ( double * delta, double * points, double * weights,
           for (k = 0; k < col; k++) d += MAX(d, fabs(points[i + k*row] - cluster_centroid[j + k*row]));
           break;
         case HAVERSINE:
-          h = sqrt(pow(sin((points[i] - cluster_centroid[j])/2),2) +
-                       cos(points[i]) * cos(cluster_centroid[j]) *
-                       pow(sin((points[i + row] - cluster_centroid[j + row])/2),2));
+          h = sqrt(pow(sin(RADIAN_FACTOR * (points[i] - cluster_centroid[j])/2),2) +
+                       cos(RADIAN_FACTOR * points[i]) * cos(RADIAN_FACTOR * cluster_centroid[j]) *
+                       pow(sin(RADIAN_FACTOR * (points[i + row] - cluster_centroid[j + row])/2),2));
           if(h > 1) h = 1; // check for near-antipodal points
           d = 2 * R * asin(h);
           break;
