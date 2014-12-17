@@ -4,7 +4,7 @@ Title: Leader Clustering Algorithm
 Version: 1.2
 Date: 2014-12-11
 Author: Taylor B. Arnold
-Maintainer: Taylor B. Arnold to <taylor.arnold@acm.org>
+Maintainer: Taylor B. Arnold <taylor.arnold@acm.org>
 Description: The leader clustering algorithm provides
  a means for clustering a set of data points. Unlike many other clustering
  algorithms it does not require the user to specify the number of clusters,
