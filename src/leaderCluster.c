@@ -1,5 +1,7 @@
 #include <R.h>
 
+#include "ctest.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,11 +18,6 @@
 #define L2 2
 #define Linf 3
 #define HAVERSINE 4
-
-extern "C" {
-  void leader_cluster ( double * delta, double * points, double * weights,
-                        int * cluster_id, int * nrow, int * ncol, int * type, double * p);
-}
 
 void leader_cluster ( double * delta, double * points, double * weights,
                       int * cluster_id, int * nrow, int * ncol, int * type, double * p) {
@@ -110,4 +107,3 @@ void leader_cluster ( double * delta, double * points, double * weights,
   free(cluster_weight);
 
 }
-
