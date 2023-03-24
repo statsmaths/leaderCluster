@@ -113,7 +113,7 @@ leaderCluster <- function(points, radius, weights = rep(1, nrow(points)), max_it
   while (iter <= max_iter )
   {
 
-    out = .C("leader_cluster",
+    out = .C(C_leader_cluster,
               delta = as.double(radius),
               points = as.double(points),
               weights = as.double(weights),

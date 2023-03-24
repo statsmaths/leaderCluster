@@ -1,8 +1,8 @@
 Package: leaderCluster
 Type: Package
 Title: Leader Clustering Algorithm
-Version: 1.3
-Date: 2022-08-12
+Version: 1.5
+Date: 2023-03-24
 Author: Taylor B. Arnold
 Maintainer: Taylor B. Arnold <tarnold2@richmond.edu>
 Description: The leader clustering algorithm provides
@@ -15,4 +15,6 @@ Description: The leader clustering algorithm provides
  formula, which takes latitude/longitude pairs as inputs and clusters
  based on great circle distances.
 License: LGPL-2
-RoxygenNote: 7.2.1
+LazyLoad: yes
+NeedsCompilation: yes
+RoxygenNote: 7.2.3
